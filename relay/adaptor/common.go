@@ -25,7 +25,30 @@ func DoRequestHelper(a Adaptor, c *gin.Context, meta *meta.Meta, requestBody io.
 	if err != nil {
 		return nil, fmt.Errorf("get request url failed: %w", err)
 	}
-	req, err := http.NewRequest(c.Request.Method, fullRequestURL, requestBody)
+
+	bodyBytes, err := io.ReadAll(requestBody)
+	if err != nil {
+		return nil, fmt.Errorf("read request body failed: %w", err)
+	}
+
+	var payload map[string]interface{}
+	if err := json.Unmarshal(bodyBytes, &payload); err != nil {
+		return nil, fmt.Errorf("unmarshal request body failed: %w", err)
+	}
+
+	// 添加 "stream": false
+	payload["stream"] = false
+
+	newBody, err := json.Marshal(payload)
+	if err != nil {
+		return nil, fmt.Errorf("marshal modified request body failed: %w", err)
+	}
+
+	req, err := http.NewRequest(c.Request.Method, fullRequestURL, bytes.NewReader(newBody))
+	if err != nil {
+		return nil, fmt.Errorf("new request failed: %w", err)
+	}
+	// req, err := http.NewRequest(c.Request.Method, fullRequestURL, requestBody)
 
 	// bodyBytes, err := io.ReadAll(requestBody)
 	// fmt.Printf("最终body-Request bodyRequest bodyRequest bodyRequest bodyRequest bodyRequest body: %s\n", string(bodyBytes))
