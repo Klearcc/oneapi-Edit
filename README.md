@@ -95,10 +95,10 @@ npm -v      # 确认 npm 已正确更新并工作正常
 1. clone源码
 
 ```
-git clone https://github.com/Klearcc/oneapiEdit.git
+git clone https://github.com/Klearcc/oneapi-Edit.git
 
 # 构建前端
-cd oneapiEdit/web/default
+cd oneapi-Edit/web/default
 npm install
 npm run build
 

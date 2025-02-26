@@ -1,11 +1,11 @@
 package adaptor
 
 import (
+	"encoding/json" // 添加此行
 	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/songquanpeng/one-api/common/client"
-	"json"
 	"bytes"
 	"github.com/songquanpeng/one-api/relay/meta"
 	"io"
