@@ -73,7 +73,7 @@ func (a *Adaptor) SetupRequestHeader(c *gin.Context, req *http.Request, meta *me
 	req.Header.Set("Authorization", "Bearer "+meta.APIKey)
 	req.Header.Set("X-Forwarded-For", "127.0.0.1")
 
-	var Xlobechatauth = env.String("X-lobe-chat-auth", "eyJhbGciOiJIUzI1NiJ9.eyJhY2Nlc3NDb2RlIjoiMTIzNDU2IiwidXNlcklkIjoiYzg4Yzg5NTEtYWE5MC00MzI4LTk3NTgtMTZjYTBmMWY1NWRjIiwiaWF0IjoxNzQwNTYyMzM0LCJleHAiOjE3NDA2NDg2MzR9.FiNXolhYVmxeeiXmaISm0DWzsaVnRdPTm7lKQsW8MzM")
+	var Xlobechatauth = env.String("X-lobe-chat-auth", "eyJhbGciOiJIUzI1NiJ9.eyJhY2Nlc3NDb2RlIjoiMTIzNDU2IiwidXNlcklkIjoiYzg4Yzg5NTEtYWE5MC00MzI4LTk3NTgtMTZjYTBmMWY1NWRjIiwiaWF0IjoxNzQwNjYzNTgzLCJleHAiOjE3NDA3NDk4ODN9.D6NupX-p1ZHsoldUjpa17KPzZqiaX0wEMNb6AvzqE0k")
 	// lobeAccessCode校验jwt
 
 	req.Header.Set("X-lobe-chat-auth", Xlobechatauth)
@@ -154,11 +154,12 @@ func (a *Adaptor) DoResponse(c *gin.Context, resp *http.Response, meta *meta.Met
 			usage.CompletionTokens = usage.TotalTokens - meta.PromptTokens
 		}
 	} else {
-		fmt.Printf("判定为非流式，判定为非流式判定为非流式判定为非流式判定为非流式判定为非流式判定为非流式判定为非流式判定为非流式")
+		fmt.Printf("判定为非流式，判定为非流式判定为非流式判定为非流式判定为非流式判定为非流式判定为非流式判定为非流式判定为非流式\n")
 		switch meta.Mode {
 		case relaymode.ImagesGenerations:
 			err, _ = ImageHandler(c, resp)
 		default:
+			fmt.Printf("走到计算token的一步了\n")
 			err, usage = Handler(c, resp, meta.PromptTokens, meta.ActualModelName)
 		}
 	}

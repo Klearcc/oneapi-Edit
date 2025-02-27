@@ -122,16 +122,16 @@ func Handler(c *gin.Context, resp *http.Response, promptTokens int, modelName st
 	if err != nil {
 		return ErrorWrapper(err, "close_response_body_failed", http.StatusInternalServerError), nil
 	}
-	err = json.Unmarshal(responseBody, &textResponse)
-	if err != nil {
-		return ErrorWrapper(err, "unmarshal_response_body_failed", http.StatusInternalServerError), nil
-	}
-	if textResponse.Error.Type != "" {
-		return &model.ErrorWithStatusCode{
-			Error:      textResponse.Error,
-			StatusCode: resp.StatusCode,
-		}, nil
-	}
+	// err = json.Unmarshal(responseBody, &textResponse)
+	// if err != nil {
+	// 	return ErrorWrapper(err, "unmarshal_response_body_failed", http.StatusInternalServerError), nil
+	// }
+	// if textResponse.Error.Type != "" {
+	// 	return &model.ErrorWithStatusCode{
+	// 		Error:      textResponse.Error,
+	// 		StatusCode: resp.StatusCode,
+	// 	}, nil
+	// }
 	// Reset response body
 	resp.Body = io.NopCloser(bytes.NewBuffer(responseBody))
 
@@ -139,29 +139,32 @@ func Handler(c *gin.Context, resp *http.Response, promptTokens int, modelName st
 	// And then we will have to send an error response, but in this case, the header has already been set.
 	// So the HTTPClient will be confused by the response.
 	// For example, Postman will report error, and we cannot check the response at all.
-	for k, v := range resp.Header {
-		c.Writer.Header().Set(k, v[0])
-	}
-	c.Writer.WriteHeader(resp.StatusCode)
-	_, err = io.Copy(c.Writer, resp.Body)
-	if err != nil {
-		return ErrorWrapper(err, "copy_response_body_failed", http.StatusInternalServerError), nil
-	}
-	err = resp.Body.Close()
-	if err != nil {
-		return ErrorWrapper(err, "close_response_body_failed", http.StatusInternalServerError), nil
-	}
+	// for k, v := range resp.Header {
+	// 	c.Writer.Header().Set(k, v[0])
+	// }
+	// c.Writer.WriteHeader(resp.StatusCode)
+	// _, err = io.Copy(c.Writer, resp.Body)
+	// if err != nil {
+	// 	return ErrorWrapper(err, "copy_response_body_failed", http.StatusInternalServerError), nil
+	// }
+	// err = resp.Body.Close()
+	// if err != nil {
+	// 	return ErrorWrapper(err, "close_response_body_failed", http.StatusInternalServerError), nil
+	// }
 
-	if textResponse.Usage.TotalTokens == 0 {
-		completionTokens := 0
-		for _, choice := range textResponse.Choices {
-			completionTokens += CountTokenText(choice.Message.StringContent(), modelName)
-		}
-		textResponse.Usage = model.Usage{
-			PromptTokens:     promptTokens,
-			CompletionTokens: completionTokens,
-			TotalTokens:      promptTokens + completionTokens,
-		}
-	}
+	// if textResponse.Usage.TotalTokens == 0 {
+	// 	completionTokens := 0
+	// 	for _, choice := range textResponse.Choices {
+	// 		completionTokens += CountTokenText(choice.Message.StringContent(), modelName)
+	// 	}
+	// 	textResponse.Usage = model.Usage{
+	// 		PromptTokens:     promptTokens,
+	// 		CompletionTokens: completionTokens,
+	// 		TotalTokens:      promptTokens + completionTokens,
+	// 	}
+	// }
+
+	textResponse.Usage = model.Usage{PromptTokens: 1, CompletionTokens: 1, TotalTokens: 1}
+	// return nil, &textResponse.Usage
 	return nil, &textResponse.Usage
 }
