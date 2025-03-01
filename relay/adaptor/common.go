@@ -162,10 +162,12 @@ func DoRequest(modelnameN string, c *gin.Context, req *http.Request) (*http.Resp
         type Message struct {
             Role    string  `json:"role"`
             Content string  `json:"content"`
+            Refusal *string `json:"refusal"`
         }
         type Choice struct {
             Index        int      `json:"index"`
             Message      Message  `json:"message"`
+            Logprobs     *any     `json:"logprobs"` // 可设置为 nil
             FinishReason string   `json:"finish_reason"`
         }
         type PromptTokensDetails struct {
@@ -192,7 +194,7 @@ func DoRequest(modelnameN string, c *gin.Context, req *http.Request) (*http.Resp
             Model             string   `json:"model"`
             Choices           []Choice `json:"choices"`
             Usage             Usage    `json:"usage"`
-            ServiceTier       string   `json:"service_tier"`
+            // ServiceTier       string   `json:"service_tier"`
             SystemFingerprint string   `json:"system_fingerprint"`
         }
         res := Result{
@@ -206,8 +208,9 @@ func DoRequest(modelnameN string, c *gin.Context, req *http.Request) (*http.Resp
                     Message: Message{
                         Role:    "assistant",
                         Content: extractedData, // 第一个 data 的内容
-                        
+                        Refusal: nil,
                     },
+                    Logprobs:     nil,
                     FinishReason: "stop",
                 },
             },
@@ -226,7 +229,7 @@ func DoRequest(modelnameN string, c *gin.Context, req *http.Request) (*http.Resp
                     RejectedPredictionTokens: 0,
                 },
             },
-            ServiceTier:       "default",
+            // ServiceTier:       "default",
             SystemFingerprint: "fp_06737a9306",
         }
     
