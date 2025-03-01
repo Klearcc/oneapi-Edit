@@ -90,7 +90,8 @@ func DoRequestHelper(a Adaptor, c *gin.Context, meta *meta.Meta, requestBody io.
 		return nil, fmt.Errorf("do request failed: %w", err)
 	}
 
-	fmt.Printf("添加stream=false后的请求体")
+	fmt.Printf("请求结束了+lobe的正常返回包也被修改为openai官方一样的了\n")
+	
 	return resp, nil
 }
 
@@ -237,7 +238,12 @@ func DoRequest(modelnameN string, c *gin.Context, req *http.Request) (*http.Resp
             // 若 marshal 失败，可作相应处理
             fmt.Printf("marshal result failed: %v\n", err)
         } else {
+			fmt.Printf("机器人的回答extractedDataextractedDataextractedData: %s\n", extractedData)
+
+
             fmt.Printf("构造完choice后的Final JSON: %s\n", finalJSON)
+
+			
         }
 
         resp.Body = io.NopCloser(bytes.NewBuffer(finalJSON))

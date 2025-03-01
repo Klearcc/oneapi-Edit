@@ -104,8 +104,9 @@ func (a *Adaptor) ConvertImageRequest(request *model.ImageRequest) (any, error) 
 func (a *Adaptor) DoRequest(c *gin.Context, meta *meta.Meta, requestBody io.Reader) (*http.Response, error) {
 	
 
-
+	fmt.Printf("返回了修改后的返回包-“relay/adaptor/openai/adaptor.go”\n")
 	return adaptor.DoRequestHelper(a, c, meta, requestBody)
+	
 }
 
 func (a *Adaptor) DoResponse(c *gin.Context, resp *http.Response, meta *meta.Meta) (usage *model.Usage, err *model.ErrorWithStatusCode) {

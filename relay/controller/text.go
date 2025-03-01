@@ -81,8 +81,9 @@ func RelayTextHelper(c *gin.Context) *model.ErrorWithStatusCode {
 	}
 
 	// do request
-	// 第一次做请求
+	// 开始第一次做请求
 	resp, err := adaptor.DoRequest(c, meta, requestBody)
+	fmt.Printf("最终修改完的返回包-“relay/controller/text.go”\n")
 	if err != nil {
 		logger.Errorf(ctx, "DoRequest failed: %s", err.Error())
 		return openai.ErrorWrapper(err, "do_request_failed", http.StatusInternalServerError)
@@ -95,13 +96,14 @@ func RelayTextHelper(c *gin.Context) *model.ErrorWithStatusCode {
 
 
 
-	// do response  // 这里是关键，对返回的内容进行处理
+	// do response  // 对返回的内容进行处理
 	usage, respErr := adaptor.DoResponse(c, resp, meta)
 	if respErr != nil {
 		logger.Errorf(ctx, "respErr is not nil: %+v", respErr)
 		billing.ReturnPreConsumedQuota(ctx, preConsumedQuota, meta.TokenId)
 		return respErr
 	}
+	fmt.Printf("对修改后的返回包进行处理-计算usage-“relay/controller/text.go”\n")
 
 	// post-consume quota
 	go postConsumeQuota(ctx, usage, meta, textRequest, ratio, preConsumedQuota, modelRatio, groupRatio)
