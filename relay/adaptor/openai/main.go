@@ -10,6 +10,8 @@ import (
 	"github.com/songquanpeng/one-api/relay/model"
 	"github.com/songquanpeng/one-api/relay/relaymode"
 	"io"
+	"bytes"
+	"fmt"
 	"net/http"
 	"strings"
 )
