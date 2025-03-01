@@ -131,7 +131,7 @@ func (a *Adaptor) DoResponse(c *gin.Context, resp *http.Response, meta *meta.Met
 		case relaymode.ImagesGenerations:
 			err, _ = ImageHandler(c, resp)
 		default:
-			fmt.Printf("走到计算token的一步了\n")
+			fmt.Printf("计算token和推送至客户端\n")
 			err, usage = Handler(c, resp, meta.PromptTokens, meta.ActualModelName)
 		}
 	}
