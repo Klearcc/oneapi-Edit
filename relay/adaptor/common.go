@@ -59,8 +59,6 @@ func DoRequestHelper(a Adaptor, c *gin.Context, meta *meta.Meta, requestBody io.
 		return nil, fmt.Errorf("unmarshal request body failed: %w", err)
 	}
 
-	// 添加 "stream": false
-	payload["stream"] = false
 
 	newBody, err := json.Marshal(payload)
 	if err != nil {
@@ -71,10 +69,6 @@ func DoRequestHelper(a Adaptor, c *gin.Context, meta *meta.Meta, requestBody io.
 	if err != nil {
 		return nil, fmt.Errorf("new request failed: %w", err)
 	}
-	// req, err := http.NewRequest(c.Request.Method, fullRequestURL, requestBody)
-
-	// bodyBytes, err := io.ReadAll(requestBody)
-	// fmt.Printf("最终body-Request bodyRequest bodyRequest bodyRequest bodyRequest bodyRequest body: %s\n", string(bodyBytes))
 
 	if err != nil {
 		return nil, fmt.Errorf("new request failed: %w", err)
@@ -97,7 +91,46 @@ func DoRequestHelper(a Adaptor, c *gin.Context, meta *meta.Meta, requestBody io.
 }
 
 func DoRequest(modelnameN string, c *gin.Context, req *http.Request) (*http.Response, error) {
-	resp, err := client.HTTPClient.Do(req)
+	// 先读取并暂存原始请求体内容
+	var requestBody map[string]interface{}
+
+    bodyBytes, err := io.ReadAll(req.Body)
+    if err != nil {
+        return nil, err
+    }
+
+    req.Body.Close() 
+
+    // 将原始JSON解析为map对象，以便修改其中的 stream 参数
+    if len(bodyBytes) > 0 {
+        if err := json.Unmarshal(bodyBytes, &requestBody); err != nil {
+            return nil, err
+        }
+    } else {
+        requestBody = make(map[string]interface{})
+    }
+
+    // 强行设置 "stream" 为 false (无论之前是否存在，都覆盖为false)
+    requestBody["stream"] = false
+
+    // 序列化回新的 JSON 请求体数据:
+	newRequestBodyBytes, err := json.Marshal(requestBody)
+	if err != nil {
+	    return nil,err 
+	}
+
+	req.Body=io.NopCloser(bytes.NewReader(newRequestBodyBytes))
+	req.ContentLength=int64(len(newRequestBodyBytes))
+
+	// 更新header中的Content-Length字段：
+	req.Header.Set("Content-Length", strconv.Itoa(len(newRequestBodyBytes)))
+
+	resp,err:=client.HTTPClient.Do(req)
+
+	if(err!=nil){
+	   return nil , err 
+	}
+
 	fmt.Printf("最终请求最终请求最终请求最终请求最终请求最终请求最终请求最终请求最终请求最终请求最终请求最终请求最终请求最终请求最终请求最终请求最终请求最终请求\n")
 	fmt.Printf("Request URL: %s\n", req.URL.String())
     fmt.Printf("Request Headers: %v\n", req.Header)
