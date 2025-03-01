@@ -73,12 +73,12 @@ func (a *Adaptor) SetupRequestHeader(c *gin.Context, req *http.Request, meta *me
 	req.Header.Set("Authorization", "Bearer "+meta.APIKey)
 	req.Header.Set("X-Forwarded-For", "127.0.0.1")
 
-	var Xlobechatauth = env.String("X-lobe-chat-auth", "eyJhbGciOiJIUzI1NiJ9.eyJhY2Nlc3NDb2RlIjoiMTIzNDU2IiwidXNlcklkIjoiYzg4Yzg5NTEtYWE5MC00MzI4LTk3NTgtMTZjYTBmMWY1NWRjIiwiaWF0IjoxNzQwNjYzNTgzLCJleHAiOjE3NDA3NDk4ODN9.D6NupX-p1ZHsoldUjpa17KPzZqiaX0wEMNb6AvzqE0k")
+	var Xlobechatauth = env.String("X-lobe-chat-auth", "eyJhbGciOiJIUzI1NiJ9.eyJhY2Nlc3NDb2RlIjoiMTIzNDU2IiwidXNlcklkIjoiYzg4Yzg5NTEtYWE5MC00MzI4LTk3NTgtMTZjYTBmMWY1NWRjIiwiaWF0IjoxNzQwNzk3ODM2LCJleHAiOjE3NDA4ODQxMzZ9.WUaesZ5LRhxvGJw3phE4_0He6mPFfuPOcgX2D7_-OlQ")
 	// lobeAccessCode校验jwt
 
 	req.Header.Set("X-lobe-chat-auth", Xlobechatauth)
 
-	fmt.Printf("req.Headerreq.Headerreq.Headerreq.Headerreq.Headerreq.Headerreq.Headerreq.Headerreq.Headerreq.Headerreq.Headerreq.Headerreq.Headerreq.Headerreq.Headerreq.Header")
+	fmt.Printf("req.Headerreq.Headerreq.Headerreq.Headerreq.Headerreq.Headerreq.Headerreq.Headerreq.Headerreq.Headerreq.Headerreq.Headerreq.Headerreq.Headerreq.Headerreq.Header,\n")
 	fmt.Printf("req.Header: %v\n", req.Header)
 	if meta.ChannelType == channeltype.OpenRouter {
 		req.Header.Set("HTTP-Referer", "https://github.com/songquanpeng/one-api")

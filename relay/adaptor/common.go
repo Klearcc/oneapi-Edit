@@ -73,7 +73,7 @@ func DoRequestHelper(a Adaptor, c *gin.Context, meta *meta.Meta, requestBody io.
 
 func DoRequest(c *gin.Context, req *http.Request) (*http.Response, error) {
 	resp, err := client.HTTPClient.Do(req)
-	fmt.Printf("最终请求最终请求最终请求最终请求最终请求最终请求最终请求最终请求最终请求最终请求最终请求最终请求最终请求最终请求最终请求最终请求最终请求最终请求")
+	fmt.Printf("最终请求最终请求最终请求最终请求最终请求最终请求最终请求最终请求最终请求最终请求最终请求最终请求最终请求最终请求最终请求最终请求最终请求最终请求\n")
 	fmt.Printf("Request URL: %s\n", req.URL.String())
     fmt.Printf("Request Headers: %v\n", req.Header)
 	// bodyBytes, err := io.ReadAll(req.Body)

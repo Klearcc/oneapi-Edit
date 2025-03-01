@@ -114,7 +114,91 @@ func Handler(c *gin.Context, resp *http.Response, promptTokens int, modelName st
 	var textResponse SlimTextResponse
 	responseBody, err := io.ReadAll(resp.Body)
 	fmt.Printf("responseBodyresponseBodyresponseBodyresponseBodyresponseBodyresponseBody: %s\n", responseBody)
+	fmt.Printf("准备将responseBody更新为choices版本...\n")
+	/* responseBody现在长这样。
+	打算吧返回内容修改为以下格式供其他平台调用{"id":"","object":"","created":0,"model":"","choices":[{"delta":{"role":"assistant","content":"xxxxx"},"index":0,"finish_reason":null}]}
+	id: chatcmpl-B67KhVjCRchp0jKv0gHB7FbL0hLIX
+	event: text
+	data: "Hello! How can I assist you today?"
+
+	id: chatcmpl-B67KhVjCRchp0jKv0gHB7FbL0hLIX
+	event: stop
+	data: "stop"
+	*/
+
+	// 提取第一个非 "stop" 的 data 值
+	var extractedData string
+	scanner := bufio.NewScanner(bytes.NewReader(responseBody))
+	for scanner.Scan() {
+		line := scanner.Text()
+		if strings.HasPrefix(line, "data:") {
+			// 去除前缀及两边的空白字符
+			content := strings.TrimSpace(strings.TrimPrefix(line, "data:"))
+			// 移除两侧的双引号
+			content = strings.Trim(content, "\"")
+			if content != "stop" {
+				extractedData = content
+				break
+			}
+		}
+	}
+
+	// 构造目标 JSON 结构，并将 extractedData 嵌入到 "content" 字段
+	type Result struct {
+		Id      string `json:"id"`
+		Object  string `json:"object"`
+		Created int64  `json:"created"`
+		Model   string `json:"model"`
+		Choices []struct {
+			Delta struct {
+				Role    string `json:"role"`
+				Content string `json:"content"`
+			} `json:"delta"`
+			Index        int         `json:"index"`
+			FinishReason interface{} `json:"finish_reason"`
+		} `json:"choices"`
+	}
+
+	res := Result{
+		Id:      "",
+		Object:  "",
+		Created: 0,
+		Model:   "",
+		Choices: []struct {
+			Delta struct {
+				Role    string `json:"role"`
+				Content string `json:"content"`
+			} `json:"delta"`
+			Index        int         `json:"index"`
+			FinishReason interface{} `json:"finish_reason"`
+		}{
+			{
+				Delta: struct {
+					Role    string `json:"role"`
+					Content string `json:"content"`
+				}{
+					Role:    "assistant",
+					Content: extractedData, // 将提取到的内容填入此处
+				},
+				Index:        0,
+				FinishReason: nil,
+			},
+		},
+	}
+
+	finalJSON, err := json.Marshal(res)
+	if err != nil {
+		// 若 marshal 失败，可作相应处理
+		fmt.Printf("marshal result failed: %v\n", err)
+	} else {
+		fmt.Printf("Final JSON: %s\n", finalJSON)
+	}
 	
+
+
+
+
+
 	if err != nil {
 		return ErrorWrapper(err, "read_response_body_failed", http.StatusInternalServerError), nil
 	}
