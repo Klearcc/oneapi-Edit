@@ -4,13 +4,33 @@ import (
 	"encoding/json" // 添加此行
 	"errors"
 	"fmt"
+	"bufio"
+	"strings"
+	"github.com/songquanpeng/one-api/relay/meta"
 	"github.com/gin-gonic/gin"
 	"github.com/songquanpeng/one-api/common/client"
+	"github.com/songquanpeng/one-api/common/logger"
+	"github.com/songquanpeng/one-api/relay/model"
 	"bytes"
-	"github.com/songquanpeng/one-api/relay/meta"
 	"io"
 	"net/http"
+	"context"
 )
+
+func ErrorWrapper(err error, code string, statusCode int) *model.ErrorWithStatusCode {
+	logger.Error(context.TODO(), fmt.Sprintf("[%s]%+v", code, err))
+
+	Error := model.Error{
+		Message: err.Error(),
+		Type:    "one_api_error",
+		Code:    code,
+	}
+	return &model.ErrorWithStatusCode{
+		Error:      Error,
+		StatusCode: statusCode,
+	}
+}
+
 
 func SetupCommonRequestHeader(c *gin.Context, req *http.Request, meta *meta.Meta) {
 	req.Header.Set("Content-Type", c.Request.Header.Get("Content-Type"))
@@ -64,14 +84,17 @@ func DoRequestHelper(a Adaptor, c *gin.Context, meta *meta.Meta, requestBody io.
 	if err != nil {
 		return nil, fmt.Errorf("setup request header failed: %w", err)
 	}
-	resp, err := DoRequest(c, req)
+	// 调用97行的DoRequest
+	resp, err := DoRequest(meta.ActualModelName, c, req)
 	if err != nil {
 		return nil, fmt.Errorf("do request failed: %w", err)
 	}
+
+	fmt.Printf("添加stream=false后的请求体")
 	return resp, nil
 }
 
-func DoRequest(c *gin.Context, req *http.Request) (*http.Response, error) {
+func DoRequest(modelnameN string, c *gin.Context, req *http.Request) (*http.Response, error) {
 	resp, err := client.HTTPClient.Do(req)
 	fmt.Printf("最终请求最终请求最终请求最终请求最终请求最终请求最终请求最终请求最终请求最终请求最终请求最终请求最终请求最终请求最终请求最终请求最终请求最终请求\n")
 	fmt.Printf("Request URL: %s\n", req.URL.String())
@@ -84,6 +107,141 @@ func DoRequest(c *gin.Context, req *http.Request) (*http.Response, error) {
 	}
 	if resp == nil {
 		return nil, errors.New("resp is nil")
+	} else{
+		/* responseBody现在长这样。
+		打算吧返回内容修改为以下格式供其他平台调用{"id":"","object":"","created":0,"model":"","choices":[{"delta":{"role":"assistant","content":"xxxxx"},"index":0,"finish_reason":null}]}
+		id: chatcmpl-B67KhVjCRchp0jKv0gHB7FbL0hLIX
+		event: text
+		data: "Hello! How can I assist you today?"
+
+		id: chatcmpl-B67KhVjCRchp0jKv0gHB7FbL0hLIX
+		event: stop
+		data: "stop"
+		// */
+		responseBody, err := io.ReadAll(resp.Body)
+        fmt.Printf("正常lobe的responseBodyresponseBodyresponseBodyresponseBodyresponseBodyresponseBody: %s\n", responseBody)
+        if err != nil {
+            return nil, fmt.Errorf("read_response_body_failed: %v", err)
+        }
+        err = resp.Body.Close()
+        if err != nil {
+            return nil, fmt.Errorf("close_response_body_failed: %v", err)
+        }
+        
+        fmt.Printf("准备将responseBody更新为choices版本...\n")
+        /* responseBody现在长这样。
+        打算吧返回内容修改为以下格式供其他平台调用{"id":"","object":"","created":0,"model":"","choices":[{"delta":{"role":"assistant","content":"xxxxx"},"index":0,"finish_reason":null}]}
+        id: chatcmpl-B67KhVjCRchp0jKv0gHB7FbL0hLIX
+        event: text
+        data: "Hello! How can I assist you today?"
+    
+        id: chatcmpl-B67KhVjCRchp0jKv0gHB7FbL0hLIX
+        event: stop
+        data: "stop"
+        */
+    
+        // 提取第一个非 "stop" 的 data 值
+        var extractedData string
+        scanner := bufio.NewScanner(bytes.NewReader(responseBody))
+        for scanner.Scan() {
+            line := scanner.Text()
+            if strings.HasPrefix(line, "data:") {
+                // 去除前缀及两边的空白字符
+                content := strings.TrimSpace(strings.TrimPrefix(line, "data:"))
+                // 移除两侧的双引号
+                content = strings.Trim(content, "\"")
+                if content != "stop" {
+                    extractedData = content
+                    break
+                }
+            }
+        }
+    
+        // 构造目标 JSON 结构，并将 extractedData 嵌入到 message.content 的位置
+        type Message struct {
+            Role    string  `json:"role"`
+            Content string  `json:"content"`
+            Refusal *string `json:"refusal"`
+        }
+        type Choice struct {
+            Index        int      `json:"index"`
+            Message      Message  `json:"message"`
+            Logprobs     *any     `json:"logprobs"` // 可设置为 nil
+            FinishReason string   `json:"finish_reason"`
+        }
+        type PromptTokensDetails struct {
+            CachedTokens int `json:"cached_tokens"`
+            AudioTokens  int `json:"audio_tokens"`
+        }
+        type CompletionTokensDetails struct {
+            ReasoningTokens            int `json:"reasoning_tokens"`
+            AudioTokens                int `json:"audio_tokens"`
+            AcceptedPredictionTokens   int `json:"accepted_prediction_tokens"`
+            RejectedPredictionTokens   int `json:"rejected_prediction_tokens"`
+        }
+        type Usage struct {
+            PromptTokens            int                     `json:"prompt_tokens"`
+            CompletionTokens        int                     `json:"completion_tokens"`
+            TotalTokens             int                     `json:"total_tokens"`
+            PromptTokensDetails     PromptTokensDetails     `json:"prompt_tokens_details"`
+            CompletionTokensDetails CompletionTokensDetails `json:"completion_tokens_details"`
+        }
+        type Result struct {
+            Id                string   `json:"id"`
+            Object            string   `json:"object"`
+            Created           int64    `json:"created"`
+            Model             string   `json:"model"`
+            Choices           []Choice `json:"choices"`
+            Usage             Usage    `json:"usage"`
+            ServiceTier       string   `json:"service_tier"`
+            SystemFingerprint string   `json:"system_fingerprint"`
+        }
+        res := Result{
+            Id:      "chatcmpl-1",
+            Object:  "chat.completion",
+            Created: 1,
+            Model:   modelnameN,
+            Choices: []Choice{
+                {
+                    Index: 0,
+                    Message: Message{
+                        Role:    "assistant",
+                        Content: extractedData, // 第一个 data 的内容
+                        Refusal: nil,
+                    },
+                    Logprobs:     nil,
+                    FinishReason: "stop",
+                },
+            },
+            Usage: Usage{
+                PromptTokens:     1,
+                CompletionTokens: 1,
+                TotalTokens:      1,
+                PromptTokensDetails: PromptTokensDetails{
+                    CachedTokens: 0,
+                    AudioTokens:  0,
+                },
+                CompletionTokensDetails: CompletionTokensDetails{
+                    ReasoningTokens:          0,
+                    AudioTokens:              0,
+                    AcceptedPredictionTokens: 0,
+                    RejectedPredictionTokens: 0,
+                },
+            },
+            ServiceTier:       "default",
+            SystemFingerprint: "fp_eb9dce56a8",
+        }
+    
+        finalJSON, err := json.Marshal(res)
+        if err != nil {
+            // 若 marshal 失败，可作相应处理
+            fmt.Printf("marshal result failed: %v\n", err)
+        } else {
+            fmt.Printf("构造完choice后的Final JSON: %s\n", finalJSON)
+        }
+
+        resp.Body = io.NopCloser(bytes.NewBuffer(finalJSON))
+
 	}
 	_ = req.Body.Close()
 	_ = c.Request.Body.Close()

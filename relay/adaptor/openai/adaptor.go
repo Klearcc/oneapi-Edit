@@ -103,41 +103,12 @@ func (a *Adaptor) ConvertImageRequest(request *model.ImageRequest) (any, error) 
 
 func (a *Adaptor) DoRequest(c *gin.Context, meta *meta.Meta, requestBody io.Reader) (*http.Response, error) {
 	
-	// fmt.Printf("DoRequestDoRequestDoRequestDoRequestDoRequestDoRequestDoRequestDoRequestDoRequestDoRequestDoRequestDoRequestDoRequest")
-	// fmt.Printf("meta.BaseURL: %s\n", meta.BaseURL)
-	// fmt.Printf("meta.RequestURLPath: %s\n", meta.RequestURLPath)
-	// fmt.Printf("meta.ChannelType: %d\n", meta.ChannelType)
-	// fmt.Printf("meta.Config.APIVersion: %s\n", meta.Config.APIVersion)
-	// fmt.Printf("meta.ActualModelName: %s\n", meta.ActualModelName)
-	// fmt.Printf("meta.APIKey: %s\n", meta.APIKey)
-	// fmt.Printf("meta.IsStream: %v\n", meta.IsStream)
-	// fmt.Printf("meta.Mode: %d\n", meta.Mode)
-	// fmt.Printf("meta.PromptTokens: %d\n", meta.PromptTokens)
+
+
 	return adaptor.DoRequestHelper(a, c, meta, requestBody)
-
-
 }
 
 func (a *Adaptor) DoResponse(c *gin.Context, resp *http.Response, meta *meta.Meta) (usage *model.Usage, err *model.ErrorWithStatusCode) {
-	// fmt.Printf("结果DoResponseDoResponseDoResponseDoResponseDoResponseDoResponseDoResponseDoResponseDoResponse")
-
-	// if resp != nil && resp.Body != nil {
-    //     if meta.IsStream {
-    //         fmt.Println("响应为流式数据，跳过打印返回包内容。")
-    //     } else {
-    //         bodyBytes, errRead := io.ReadAll(resp.Body)
-    //         if errRead != nil {
-    //             fmt.Printf("读取响应包失败: %v\n", errRead)
-    //         } else {
-    //             fmt.Printf("Response Body: %s\n", string(bodyBytes))
-    //         }
-    //         // 重新设置 resp.Body，供后续的 Handler 使用
-    //         resp.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
-    //     }
-    // }
-
-
-
 
 	if meta.IsStream {
 		var responseText string
