@@ -112,18 +112,26 @@ func (a *Adaptor) DoRequest(c *gin.Context, meta *meta.Meta, requestBody io.Read
 func (a *Adaptor) DoResponse(c *gin.Context, resp *http.Response, meta *meta.Meta) (usage *model.Usage, err *model.ErrorWithStatusCode) {
 
 	if meta.IsStream {
-		var responseText string
-		err, responseText, usage = StreamHandler(c, resp, meta.Mode)
-		// fmt.Printf("responseTextresponseTextresponseTextresponseTextresponseTextresponseTextresponseTextresponseText: %s\n",responseText)
+		// var responseText string
+		// err, responseText, usage = StreamHandler(c, resp, meta.Mode)
+		// // fmt.Printf("responseTextresponseTextresponseTextresponseTextresponseTextresponseTextresponseTextresponseText: %s\n",responseText)
 
 
-		if usage == nil || usage.TotalTokens == 0 {
-			usage = ResponseText2Usage(responseText, meta.ActualModelName, meta.PromptTokens)
+		// if usage == nil || usage.TotalTokens == 0 {
+		// 	usage = ResponseText2Usage(responseText, meta.ActualModelName, meta.PromptTokens)
 
-		}
-		if usage.TotalTokens != 0 && usage.PromptTokens == 0 { // some channels don't return prompt tokens & completion tokens
-			usage.PromptTokens = meta.PromptTokens
-			usage.CompletionTokens = usage.TotalTokens - meta.PromptTokens
+		// }
+		// if usage.TotalTokens != 0 && usage.PromptTokens == 0 { // some channels don't return prompt tokens & completion tokens
+		// 	usage.PromptTokens = meta.PromptTokens
+		// 	usage.CompletionTokens = usage.TotalTokens - meta.PromptTokens
+		// }
+		fmt.Printf("判定为非流式，判定为非流式判定为非流式判定为非流式判定为非流式判定为非流式判定为非流式判定为非流式判定为非流式\n")
+		switch meta.Mode {
+		case relaymode.ImagesGenerations:
+			err, _ = ImageHandler(c, resp)
+		default:
+			fmt.Printf("计算token和推送至客户端\n")
+			err, usage = Handler(c, resp, meta.PromptTokens, meta.ActualModelName)
 		}
 	} else {
 		fmt.Printf("判定为非流式，判定为非流式判定为非流式判定为非流式判定为非流式判定为非流式判定为非流式判定为非流式判定为非流式\n")
