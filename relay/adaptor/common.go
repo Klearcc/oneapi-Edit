@@ -162,12 +162,10 @@ func DoRequest(modelnameN string, c *gin.Context, req *http.Request) (*http.Resp
         type Message struct {
             Role    string  `json:"role"`
             Content string  `json:"content"`
-            Refusal *string `json:"refusal"`
         }
         type Choice struct {
             Index        int      `json:"index"`
             Message      Message  `json:"message"`
-            Logprobs     *any     `json:"logprobs"` // 可设置为 nil
             FinishReason string   `json:"finish_reason"`
         }
         type PromptTokensDetails struct {
@@ -198,9 +196,9 @@ func DoRequest(modelnameN string, c *gin.Context, req *http.Request) (*http.Resp
             SystemFingerprint string   `json:"system_fingerprint"`
         }
         res := Result{
-            Id:      "chatcmpl-1",
+            Id:      "chatcmpl-B6BBfld6yNw7QXm9tR0xLvDdkBx2q",
             Object:  "chat.completion",
-            Created: 1,
+            Created: 1740812671,
             Model:   modelnameN,
             Choices: []Choice{
                 {
@@ -208,9 +206,8 @@ func DoRequest(modelnameN string, c *gin.Context, req *http.Request) (*http.Resp
                     Message: Message{
                         Role:    "assistant",
                         Content: extractedData, // 第一个 data 的内容
-                        Refusal: nil,
+                        
                     },
-                    Logprobs:     nil,
                     FinishReason: "stop",
                 },
             },
@@ -230,7 +227,7 @@ func DoRequest(modelnameN string, c *gin.Context, req *http.Request) (*http.Resp
                 },
             },
             ServiceTier:       "default",
-            SystemFingerprint: "fp_eb9dce56a8",
+            SystemFingerprint: "fp_06737a9306",
         }
     
         finalJSON, err := json.Marshal(res)
