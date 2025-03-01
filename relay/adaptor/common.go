@@ -15,6 +15,7 @@ import (
 	"io"
 	"net/http"
 	"context"
+	"strconv"
 )
 
 func ErrorWrapper(err error, code string, statusCode int) *model.ErrorWithStatusCode {
@@ -247,6 +248,8 @@ func DoRequest(modelnameN string, c *gin.Context, req *http.Request) (*http.Resp
         }
 
         resp.Body = io.NopCloser(bytes.NewBuffer(finalJSON))
+		resp.Header.Set("Content-Type","application/json;charset=utf-8")
+		resp.Header.Set("Content-Length",strconv.Itoa(len(finalJSON)))
 
 	}
 	_ = req.Body.Close()
