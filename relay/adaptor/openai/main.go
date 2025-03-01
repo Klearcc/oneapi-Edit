@@ -160,10 +160,10 @@ func Handler(c *gin.Context, resp *http.Response, promptTokens int, modelName st
 	}
 
 	res := Result{
-		Id:      "",
-		Object:  "",
-		Created: 0,
-		Model:   "",
+		Id:      "1",
+		Object:  "chat.completion",
+		Created: 1,
+		Model:   modelName,
 		Choices: []struct {
 			Delta struct {
 				Role    string `json:"role"`
